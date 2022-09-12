@@ -41,7 +41,7 @@ export const LinksQuery = extendType({
   },
 });
 
-// graphql/types/Link.ts
+// graphql/types/Link.ts// graphql/types/Link.ts
 export const CreateLinkMutation = extendType({
   type: 'Mutation',
   definition(t) {
@@ -55,9 +55,18 @@ export const CreateLinkMutation = extendType({
         description: nonNull(stringArg()),
       },
       async resolve(_parent, args, ctx) {
-
         if (!ctx.user) {
           throw new Error(`You need to be logged in to perform an action`)
+        }
+
+        const user = await ctx.prisma.user.findUnique({
+          where: {
+            email: ctx.user.email,
+          },
+        });
+
+         if (user.role !== 'ADMIN') {
+          throw new Error(`You do not have permission to perform action`);
         }
 
         const newLink = {
@@ -66,12 +75,12 @@ export const CreateLinkMutation = extendType({
           imageUrl: args.imageUrl,
           category: args.category,
           description: args.description,
-        }
+        };
 
         return await ctx.prisma.link.create({
           data: newLink,
-        })
+        });
       },
-    })
+    });
   },
-})
+});
